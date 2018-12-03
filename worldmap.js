@@ -45,6 +45,7 @@ module.exports = function(RED) {
         }
         var node = this;
         var clients = {};
+        var initMsgs = [];
         RED.httpNode.use(node.path, express.static(__dirname + '/worldmap'));
 
 
@@ -65,6 +66,7 @@ module.exports = function(RED) {
                     c.panit = node.panit;
                     c.showlayers = node.layers;
                     client.write(JSON.stringify({command:c}));
+                    initMsgs.forEach( init => client.write(JSON.stringify(init.payload)) )
                 }
             });
             client.on('close', function() {
@@ -80,6 +82,9 @@ module.exports = function(RED) {
                 }
             }
             else {
+                if (msg.init) {
+                    initMsgs.push(msg);
+                }
                 for (var c in clients) {
                     if (clients.hasOwnProperty(c)) {
                         clients[c].write(JSON.stringify(msg.payload));
